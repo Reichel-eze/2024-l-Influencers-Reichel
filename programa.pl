@@ -98,6 +98,7 @@ juego(aoe).
 adictiva(Red) :-
     red(Red),
     forall(publico(_,Red,Contenido), contenidoAdictivo(Contenido)).
+    % para todo contenido publicado en la Red, dicho contenido es adictivo
 
 contenidoAdictivo(video(_,Duracion)) :- Duracion < 3.
 contenidoAdictivo(stream(Tema)) :- juego(Tema).
@@ -112,14 +113,39 @@ contenidoAdictivo(foto(Participantes)) :-
 % entonces también debe ser cierto que b colaboró con a)
 % Por ejemplo, beto colaboró con ana y ana colaboró con evelyn.
 
-colaboran(Usuario, OtroUsuario) :-
-    publicoContenidoCon(Usuario, OtroUsuario).
+colaboran(P1, P2) :- colaboranJuntos(P1, P2).
+colaboran(P1, P2) :- colaboranJuntos(P2, P1).
 
-colaboran(Usuario, OtroUsuario) :-
-    publicoContenidoCon(Usuario, OtroUsuario).
-    
+colaboranJuntos(Usuario, OtroUsuario) :-
+    publicoContenidoCon(Usuario, OtroUsuario),
+    Usuario \= OtroUsuario.
+
 publicoContenidoCon(Usuario, OtroUsuario) :-
     publico(Usuario, _, Contenido),
-    apareceEn(Usuario, Contenido, OtroUsuario).
+    apareceEn(Contenido, OtroUsuario).
     
+apareceEn(video(Participantes, _), OtroUsuario) :-
+    member(OtroUsuario, Participantes).
+
+apareceEn(foto(Participantes), OtroUsuario) :-
+    member(OtroUsuario, Participantes).
+    
+% en el caso del strem NO puede aparecer el OtroUsuario!!
+% --> En un stream siempre aparece quien creó el contenido.
+
+% 6) caminoALaFama/1 se cumple para un usuario no influencer cuando 
+% un influencer publicó contenido en el que aparece el usuario, 
+% o bien el influencer publicó contenido donde aparece otro usuario
+% que a su vez publicó contenido donde aparece el usuario. 
+% Debe valer para cualquier nivel de indirección.
+% - Cami está camino a la fama porque evelyn publicó una foto suya 
+% (y a su vez ana, que es influencer, publicó un video donde aparece 
+% evelyn).
+% - Beto no está camino a la fama aunque ana haya publicado un 
+% video con él, ¡porque ya es famoso, es influencer!
+
+caminoALaFama(Usuario) :-
+    usuario(Usuario),
+    not(influencer(Usuario)),
+    cadenaDepublicoContenidoCon(_, Usuario).
 
