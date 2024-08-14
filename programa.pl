@@ -122,14 +122,16 @@ colaboranJuntos(Usuario, OtroUsuario) :-
 
 publicoContenidoCon(Usuario, OtroUsuario) :-
     publico(Usuario, _, Contenido),
-    apareceEn(Contenido, OtroUsuario).
+    apareceEn(Usuario, Contenido, OtroUsuario).
     
-apareceEn(video(Participantes, _), OtroUsuario) :-
+apareceEn(_, video(Participantes, _), OtroUsuario) :-
     member(OtroUsuario, Participantes).
 
-apareceEn(foto(Participantes), OtroUsuario) :-
+apareceEn(_, foto(Participantes), OtroUsuario) :-
     member(OtroUsuario, Participantes).
     
+apareceEn(Usuario, stream(_), Usuario).
+
 % en el caso del strem NO puede aparecer el OtroUsuario!!
 % --> En un stream siempre aparece quien creó el contenido.
 
@@ -147,5 +149,44 @@ apareceEn(foto(Participantes), OtroUsuario) :-
 caminoALaFama(Usuario) :-
     usuario(Usuario),
     not(influencer(Usuario)),
-    cadenaDepublicoContenidoCon(_, Usuario).
+    influencer(Influencer),
+    cadenaDepublicoContenidoCon(Influencer, Usuario).
 
+cadenaDepublicoContenidoCon(Influencer, Usuario) :-
+    publicoContenidoCon(Influencer, Usuario).
+
+cadenaDepublicoContenidoCon(Influencer, Usuario) :-
+    publicoContenidoCon(Influencer, UsuarioIntermedio),
+    cadenaDepublicoContenidoCon(UsuarioIntermedio, Usuario).
+
+% 7)
+% a) Hacer al menos un test que pruebe que una consulta existencial 
+% sobre alguno de los puntos funcione correctamente
+
+% ? - influencer(Persona).
+% Persona = ana ;
+% Persona = beto ;
+% Persona = dani ;
+
+% b) ¿Qué hubo que hacer para modelar que beto no tiene tiktok? 
+% Justificar conceptualmente.
+
+/*
+Para modelar que beto NO tiene un canal de tiktok simplemente NO habia
+que agregarlo a la base de conocimientos, debido al concepto de universo
+cerrado que considera verdadero a todo lo que este explicitado en el codigo
+mientras tanto, todo lo que no este en el codigo se considera Falso.
+Entonces volviendo a caso de beto, si consulto en la terminal:
+? - canal(beto, tiktok, _).
+false.
+Me tira false porque Prolog busco en la base de conocimientos y NO
+encontre dicho hecho, por lo tanto lo considera como falso.
+
+NO hubo que agregar ninguna línea de código. 
+Quien consulte ?- canal(beto, tiktok, _). obtendrá falso por el 
+concepto de universo cerrado: 
+todo lo que no esté en la base de conocimientos es falso. 
+Entonces, al no agregarlo ya estoy diciendo 
+"beto no tiene tiktok" implícitamente.
+
+*/
